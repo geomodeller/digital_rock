@@ -308,6 +308,7 @@ def plot_training_history(history):
     axes[0].set_title("Loss")
     axes[0].set_xlabel("Epoch")
     axes[0].set_ylabel("Loss")
+    axes[0].set_yscale("log")
     axes[0].legend()
     axes[0].grid(alpha=0.3)
 
