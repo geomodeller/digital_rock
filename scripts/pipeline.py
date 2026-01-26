@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from tabnanny import verbose
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 ArrayLike = np.ndarray
+
 
 # # -----------------------------------------------------------------------------
 # # Minimal user-style loop 
@@ -64,6 +67,7 @@ def run_pipeline(
     img: ArrayLike,
     pipeline: List[Step],
     params: Dict[str, Dict[str, Any]],
+    verbose: bool = False,
 ) -> Dict[str, Any]:
     """
     Runs a pipeline of named steps. Each step can have parameters in params[step.name].
@@ -78,10 +82,18 @@ def run_pipeline(
     out_images: List[Any] = []
     out_steps: List[str] = []
     meta: Dict[str, Any] = {}
+    if verbose:
+        print("=== Pipeline execution ===")
+    t_total_start = time.perf_counter()
 
     for step in pipeline:
         kw = params.get(step.name, {})
         y = step.fn(x, **kw)
+        if verbose:
+            t_step_start = time.perf_counter()
+            t_step_end = time.perf_counter()    
+            step_time = t_step_end - t_step_start
+            print(f"[{step.name:<20}] {step_time:8.4f} s")
 
         # capture tuple returns like (mask, threshold)
         if isinstance(y, tuple) and len(y) == 2 and isinstance(y[0], np.ndarray):
@@ -92,6 +104,11 @@ def run_pipeline(
 
         out_steps.append(step.name)
         out_images.append(x)
+    if verbose:
+        total_time = time.perf_counter() - t_total_start
+        print(f"{'-'*32}")
+        print(f"[TOTAL]              {total_time:8.4f} s")
+        print("==========================")
 
     return {
         "steps": out_steps,

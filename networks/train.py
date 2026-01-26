@@ -297,7 +297,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_training_history(history):
+def plot_training_history(history, save_path: Optional[str] = None):
     epochs = np.arange(1, len(history["train_loss"]) + 1)
 
     fig, axes = plt.subplots(1, 3, figsize=(15, 4), constrained_layout=True)
@@ -327,6 +327,8 @@ def plot_training_history(history):
     axes[2].grid(alpha=0.3)
 
     plt.show()
+    if save_path is not None:
+        fig.savefig(save_path)
 
 # -----------------------------
 # Example usage
