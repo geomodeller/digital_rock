@@ -1,3 +1,4 @@
-data*
-networks/resunet
 *__*__*
+dataset*
+checkpoints*
+logs*

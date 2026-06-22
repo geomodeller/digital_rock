@@ -29,6 +29,7 @@ from typing import Literal, Optional, Tuple, Union
 
 import numpy as np
 from scipy import ndimage as ndi
+from scipy.ndimage import gaussian_filter
 from skimage import util
 from skimage.filters import gaussian, median
 from skimage.morphology import disk, ball
@@ -247,6 +248,32 @@ def denoise_non_local_means(
 
     return _restore_dtype_range(y01, img) if preserve_dtype else y01
 
+
+# -----------------------------------------------------------------------------
+# gaussian-based biased correction filtering
+# -----------------------------------------------------------------------------
+def denoise_bias_field_correct(
+    img: ArrayLike,
+    *,
+    sigma=30, 
+    eps=1e-6, 
+    preserve_dtype=True
+    ):
+    img_f = img.astype(np.float32, copy=False)
+
+    bg = gaussian_filter(img_f, sigma=sigma)
+    bg = np.maximum(bg, eps)
+    
+    out = img_f / bg * np.mean(bg)
+
+    if preserve_dtype:
+        # clip back to original dtype range if integer
+        if np.issubdtype(img.dtype, np.integer):
+            info = np.iinfo(img.dtype)
+            out = np.clip(out, info.min, info.max).astype(img.dtype)
+        else:
+            out = out.astype(img.dtype)
+    return out
 
 # -----------------------------------------------------------------------------
 # 5) Fourier-based filtering (global frequency domain)
